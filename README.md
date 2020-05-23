@@ -755,9 +755,9 @@ First you'll need to install `BrowserStackTunnel`. You can download the binary f
 
 Next, you'll need to set the appropriate environment variables:
  - `BROWSER_STACK_BINARY_BASE_PATH`: This should be the directory you put the `BrowserStackTunnel` binary in. If you installed with homebrew you can run `which browserstacklocal` to find the directory.
- - `BROWSER_STACK_USERNAME`: You can find this under the *Automate* section of
+ - `BROWSERSTACK_USERNAME`: You can find this under the *Automate* section of
 the [BrowserStack account settings page](https://www.browserstack.com/accounts/settings)
- - `BROWSER_STACK_ACCESS_KEY`: You can find this under the *Automate* section of
+ - `BROWSERSTACK_ACCESS_KEY`: You can find this under the *Automate* section of
 the [BrowserStack account settings page](https://www.browserstack.com/accounts/settings)
 
 Now, you can run the command `npm run test-full`.
