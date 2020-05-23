@@ -751,7 +751,7 @@ The unminified script loader can be seen in [src/loader.js](src/loader.js). The 
 
 ### Running the test suite on BrowserStack
 
-First you'll need to install `BrowserStackTunnel`. You can download the binary from [the BrowserStack website](https://www.browserstack.com/local-testing). If you're on Mac OS you can install it through homebrew: `brew install caskroom/cask/browserstacklocal`.
+First you'll need to install `BrowserStackTunnel`. You can download the binary from [the BrowserStack website](https://www.browserstack.com/local-testing). If you're on Mac OS you can install it through homebrew: `brew cask install browserstacklocal`.
 
 Next, you'll need to set the appropriate environment variables:
  - `BROWSER_STACK_BINARY_BASE_PATH`: This should be the directory you put the `BrowserStackTunnel` binary in. If you installed with homebrew you can run `which browserstacklocal` to find the directory.
