@@ -738,3 +738,6 @@ the [BrowserStack account settings page](https://www.browserstack.com/accounts/s
 the [BrowserStack account settings page](https://www.browserstack.com/accounts/settings)
 
 Now, you can run the command `npm run test-full`.
+
+
+
