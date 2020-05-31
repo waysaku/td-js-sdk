@@ -161,7 +161,8 @@ module.exports = function (config) {
         base: 'BrowserStack',
         device: 'iPhone 5S',
         os: 'ios',
-        os_version: '7.0'
+        os_version: '7.0',
+        realMobile: true
       },
       bs_iphone6: {
         base: 'BrowserStack',
@@ -192,7 +193,8 @@ module.exports = function (config) {
         device: 'Samsung Galaxy S5',
         os: 'android',
         os_version: '4.4',
-        browser: 'android'
+        browser: 'android',
+        realMobile: true
       },
       android50: {
         base: 'BrowserStack',
