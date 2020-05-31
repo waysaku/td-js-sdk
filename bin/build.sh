@@ -60,11 +60,6 @@ $ROOT_DIR/node_modules/.bin/webpack
 if [ $FILENAME != "td" ]
 then
   mv $ROOT_DIR/dist/td.js $ROOT_DIR/dist/$FILENAME.js
-fi
-
-MINIFY_BUILD=true $ROOT_DIR/node_modules/.bin/webpack --output-filename [name].min.js
-if [ $FILENAME != "td" ]
-then
   mv $ROOT_DIR/dist/td.min.js $ROOT_DIR/dist/$FILENAME.min.js
 fi
 
