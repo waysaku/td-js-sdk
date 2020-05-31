@@ -4,6 +4,60 @@
 
 [![Build Status](https://travis-ci.org/treasure-data/td-js-sdk.svg?branch=master)](https://travis-ci.org/treasure-data/td-js-sdk) [![BrowserStack Status](https://automate.browserstack.com/badge.svg?badge_key=c1V2OVZ6aS9veXEwREVTZXZxSGtOVGd4MDhvQitmMGxIZDdRdzE0N2JxQT0tLWRMdVIvTmtEdWJiTVNta284R3dDRUE9PQ==--c57db3c576c5ee78218f19d1a00b381cbc08b974)](https://automate.browserstack.com/public-build/c1V2OVZ6aS9veXEwREVTZXZxSGtOVGd4MDhvQitmMGxIZDdRdzE0N2JxQT0tLWRMdVIvTmtEdWJiTVNta284R3dDRUE9PQ==--c57db3c576c5ee78218f19d1a00b381cbc08b974)
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Build](#build)
+  - [GLOBAL](#global)
+  - [FILENAME](#filename)
+  - [URL](#url)
+- [Installing](#installing)
+  - [Script snippet](#script-snippet)
+  - [npm](#npm)
+- [Getting started](#getting-started)
+  - [Get your write-only API key](#get-your-write-only-api-key)
+  - [Initializing](#initializing)
+  - [Sending your first event](#sending-your-first-event)
+- [Tracking](#tracking)
+  - [Client ID and Storage](#client-id-and-storage)
+  - [Page impressions](#page-impressions)
+  - [Event tracking](#event-tracking)
+  - [Tracked information](#tracked-information)
+- [Default values](#default-values)
+- [Data Privacy](#data-privacy)
+  - [Examples](#examples)
+- [API](#api)
+  - [Treasure(config)](#treasureconfig)
+  - [Treasure#addRecord(table, record, success, error)](#treasureaddrecordtable-record-success-error)
+  - [Treasure#fetchGlobalID(success, error, forceFetch)](#treasurefetchglobalidsuccess-error-forcefetch)
+  - [Treasure#fetchUserSegments(token, success, error)](#treasurefetchusersegmentstoken-success-error)
+  - [Treasure#fetchUserSegments(options, success, error)](#treasurefetchusersegmentsoptions-success-error)
+  - [Treasure#blockEvents](#treasureblockevents)
+  - [Treasure#unblockEvents](#treasureunblockevents)
+  - [Treasure#areEventsBlocked](#treasureareeventsblocked)
+  - [Treasure#setSignedMode](#treasuresetsignedmode)
+  - [Treasure#setAnonymousMode](#treasuresetanonymousmode)
+  - [Treasure#inSignedMode](#treasureinsignedmode)
+  - [Treasure#fetchServerCookie(success, error, forceFetch)](#treasurefetchservercookiesuccess-error-forcefetch)
+  - [Treasure#resetUUID](#treasureresetuuid)
+  - [Treasure#trackClicks](#treasuretrackclicks)
+  - [Treasure#trackPageview(table, success, error)](#treasuretrackpageviewtable-success-error)
+  - [Treasure#trackEvent(table, record, success, error)](#treasuretrackeventtable-record-success-error)
+  - [Treasure#set()](#treasureset)
+    - [Treasure#set(table, key, value)](#treasuresettable-key-value)
+    - [Treasure#set(table, properties)](#treasuresettable-properties)
+  - [Treasure#get(table)](#treasuregettable)
+  - [Treasure#ready(fn)](#treasurereadyfn)
+- [Support](#support)
+- [FAQ](#faq)
+- [Other](#other)
+  - [Dependency version notes](#dependency-version-notes)
+- [Contributing](#contributing)
+  - [Running the test suite on BrowserStack](#running-the-test-suite-on-browserstack)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Build
 
 The build script (`bin/build.sh`) can be used to configure several aspects of the SDK:

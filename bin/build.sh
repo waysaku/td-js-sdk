@@ -82,6 +82,8 @@ sed -i '.backup' "/\!function.*/ {
 sed -i '.backup' 's_;</script>_;\
 </script>_' $ROOT_DIR/README.md && rm $ROOT_DIR/README.md.backup
 
+$ROOT_DIR/node_modules/.bin/doctoc $ROOT_DIR/README.md 
+
 if [ $FILENAME != "td" ]
 then
   rm $BUILT_FILENAME $MINIFIED_FILENAME
