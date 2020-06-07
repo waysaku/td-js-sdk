@@ -495,6 +495,11 @@
     process.removeListener = noop;
     process.removeAllListeners = noop;
     process.emit = noop;
+    process.prependListener = noop;
+    process.prependOnceListener = noop;
+    process.listeners = function(name) {
+        return [];
+    };
     process.binding = function(name) {
         throw new Error("process.binding is not supported");
     };
@@ -1418,15 +1423,17 @@
     module.exports = noop;
 }, function(module, exports) {
     (function(global) {
+        var win;
         if (typeof window !== "undefined") {
-            module.exports = window;
+            win = window;
         } else if (typeof global !== "undefined") {
-            module.exports = global;
+            win = global;
         } else if (typeof self !== "undefined") {
-            module.exports = self;
+            win = self;
         } else {
-            module.exports = {};
+            win = {};
         }
+        module.exports = win;
     }).call(exports, function() {
         return this;
     }());
@@ -1580,128 +1587,117 @@
             };
             var freeExports = objectTypes[typeof exports] && exports && !exports.nodeType && exports;
             var root = objectTypes[typeof window] && window || this, freeGlobal = freeExports && objectTypes[typeof module] && module && !module.nodeType && typeof global == "object" && global;
-            if (freeGlobal && (freeGlobal["global"] === freeGlobal || freeGlobal["window"] === freeGlobal || freeGlobal["self"] === freeGlobal)) {
+            if (freeGlobal && (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal || freeGlobal.self === freeGlobal)) {
                 root = freeGlobal;
             }
             function runInContext(context, exports) {
-                context || (context = root["Object"]());
-                exports || (exports = root["Object"]());
-                var Number = context["Number"] || root["Number"], String = context["String"] || root["String"], Object = context["Object"] || root["Object"], Date = context["Date"] || root["Date"], SyntaxError = context["SyntaxError"] || root["SyntaxError"], TypeError = context["TypeError"] || root["TypeError"], Math = context["Math"] || root["Math"], nativeJSON = context["JSON"] || root["JSON"];
+                context || (context = root.Object());
+                exports || (exports = root.Object());
+                var Number = context.Number || root.Number, String = context.String || root.String, Object = context.Object || root.Object, Date = context.Date || root.Date, SyntaxError = context.SyntaxError || root.SyntaxError, TypeError = context.TypeError || root.TypeError, Math = context.Math || root.Math, nativeJSON = context.JSON || root.JSON;
                 if (typeof nativeJSON == "object" && nativeJSON) {
                     exports.stringify = nativeJSON.stringify;
                     exports.parse = nativeJSON.parse;
                 }
-                var objectProto = Object.prototype, getClass = objectProto.toString, isProperty, forEach, undef;
+                var objectProto = Object.prototype, getClass = objectProto.toString, isProperty = objectProto.hasOwnProperty, undefined;
+                function attempt(func, errorFunc) {
+                    try {
+                        func();
+                    } catch (exception) {
+                        if (errorFunc) {
+                            errorFunc();
+                        }
+                    }
+                }
                 var isExtended = new Date(-0xc782b5b800cec);
-                try {
+                attempt(function() {
                     isExtended = isExtended.getUTCFullYear() == -109252 && isExtended.getUTCMonth() === 0 && isExtended.getUTCDate() === 1 && isExtended.getUTCHours() == 10 && isExtended.getUTCMinutes() == 37 && isExtended.getUTCSeconds() == 6 && isExtended.getUTCMilliseconds() == 708;
-                } catch (exception) {}
+                });
                 function has(name) {
-                    if (has[name] !== undef) {
+                    if (has[name] != null) {
                         return has[name];
                     }
                     var isSupported;
                     if (name == "bug-string-char-index") {
                         isSupported = "a"[0] != "a";
                     } else if (name == "json") {
-                        isSupported = has("json-stringify") && has("json-parse");
+                        isSupported = has("json-stringify") && has("date-serialization") && has("json-parse");
+                    } else if (name == "date-serialization") {
+                        isSupported = has("json-stringify") && isExtended;
+                        if (isSupported) {
+                            var stringify = exports.stringify;
+                            attempt(function() {
+                                isSupported = stringify(new Date(-864e13)) == '"-271821-04-20T00:00:00.000Z"' && stringify(new Date(864e13)) == '"+275760-09-13T00:00:00.000Z"' && stringify(new Date(-621987552e5)) == '"-000001-01-01T00:00:00.000Z"' && stringify(new Date(-1)) == '"1969-12-31T23:59:59.999Z"';
+                            });
+                        }
                     } else {
                         var value, serialized = '{"a":[1,true,false,null,"\\u0000\\b\\n\\f\\r\\t"]}';
                         if (name == "json-stringify") {
-                            var stringify = exports.stringify, stringifySupported = typeof stringify == "function" && isExtended;
+                            var stringify = exports.stringify, stringifySupported = typeof stringify == "function";
                             if (stringifySupported) {
                                 (value = function() {
                                     return 1;
                                 }).toJSON = value;
-                                try {
-                                    stringifySupported = stringify(0) === "0" && stringify(new Number()) === "0" && stringify(new String()) == '""' && stringify(getClass) === undef && stringify(undef) === undef && stringify() === undef && stringify(value) === "1" && stringify([ value ]) == "[1]" && stringify([ undef ]) == "[null]" && stringify(null) == "null" && stringify([ undef, getClass, null ]) == "[null,null,null]" && stringify({
+                                attempt(function() {
+                                    stringifySupported = stringify(0) === "0" && stringify(new Number()) === "0" && stringify(new String()) == '""' && stringify(getClass) === undefined && stringify(undefined) === undefined && stringify() === undefined && stringify(value) === "1" && stringify([ value ]) == "[1]" && stringify([ undefined ]) == "[null]" && stringify(null) == "null" && stringify([ undefined, getClass, null ]) == "[null,null,null]" && stringify({
                                         "a": [ value, true, false, null, "\0\b\n\f\r\t" ]
-                                    }) == serialized && stringify(null, value) === "1" && stringify([ 1, 2 ], null, 1) == "[\n 1,\n 2\n]" && stringify(new Date(-864e13)) == '"-271821-04-20T00:00:00.000Z"' && stringify(new Date(864e13)) == '"+275760-09-13T00:00:00.000Z"' && stringify(new Date(-621987552e5)) == '"-000001-01-01T00:00:00.000Z"' && stringify(new Date(-1)) == '"1969-12-31T23:59:59.999Z"';
-                                } catch (exception) {
+                                    }) == serialized && stringify(null, value) === "1" && stringify([ 1, 2 ], null, 1) == "[\n 1,\n 2\n]";
+                                }, function() {
                                     stringifySupported = false;
-                                }
+                                });
                             }
                             isSupported = stringifySupported;
                         }
                         if (name == "json-parse") {
-                            var parse = exports.parse;
+                            var parse = exports.parse, parseSupported;
                             if (typeof parse == "function") {
-                                try {
+                                attempt(function() {
                                     if (parse("0") === 0 && !parse(false)) {
                                         value = parse(serialized);
-                                        var parseSupported = value["a"].length == 5 && value["a"][0] === 1;
+                                        parseSupported = value["a"].length == 5 && value["a"][0] === 1;
                                         if (parseSupported) {
-                                            try {
+                                            attempt(function() {
                                                 parseSupported = !parse('"\t"');
-                                            } catch (exception) {}
+                                            });
                                             if (parseSupported) {
-                                                try {
+                                                attempt(function() {
                                                     parseSupported = parse("01") !== 1;
-                                                } catch (exception) {}
+                                                });
                                             }
                                             if (parseSupported) {
-                                                try {
+                                                attempt(function() {
                                                     parseSupported = parse("1.") !== 1;
-                                                } catch (exception) {}
+                                                });
                                             }
                                         }
                                     }
-                                } catch (exception) {
+                                }, function() {
                                     parseSupported = false;
-                                }
+                                });
                             }
                             isSupported = parseSupported;
                         }
                     }
                     return has[name] = !!isSupported;
                 }
+                has["bug-string-char-index"] = has["date-serialization"] = has["json"] = has["json-stringify"] = has["json-parse"] = null;
                 if (!has("json")) {
                     var functionClass = "[object Function]", dateClass = "[object Date]", numberClass = "[object Number]", stringClass = "[object String]", arrayClass = "[object Array]", booleanClass = "[object Boolean]";
                     var charIndexBuggy = has("bug-string-char-index");
-                    if (!isExtended) {
-                        var floor = Math.floor;
-                        var Months = [ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 ];
-                        var getDay = function(year, month) {
-                            return Months[month] + 365 * (year - 1970) + floor((year - 1969 + (month = +(month > 1))) / 4) - floor((year - 1901 + month) / 100) + floor((year - 1601 + month) / 400);
-                        };
-                    }
-                    if (!(isProperty = objectProto.hasOwnProperty)) {
-                        isProperty = function(property) {
-                            var members = {}, constructor;
-                            if ((members.__proto__ = null, members.__proto__ = {
-                                "toString": 1
-                            }, members).toString != getClass) {
-                                isProperty = function(property) {
-                                    var original = this.__proto__, result = property in (this.__proto__ = null, this);
-                                    this.__proto__ = original;
-                                    return result;
-                                };
-                            } else {
-                                constructor = members.constructor;
-                                isProperty = function(property) {
-                                    var parent = (this.constructor || constructor).prototype;
-                                    return property in this && !(property in parent && this[property] === parent[property]);
-                                };
-                            }
-                            members = null;
-                            return isProperty.call(this, property);
-                        };
-                    }
-                    forEach = function(object, callback) {
-                        var size = 0, Properties, members, property;
+                    var forOwn = function(object, callback) {
+                        var size = 0, Properties, dontEnums, property;
                         (Properties = function() {
                             this.valueOf = 0;
                         }).prototype.valueOf = 0;
-                        members = new Properties();
-                        for (property in members) {
-                            if (isProperty.call(members, property)) {
+                        dontEnums = new Properties();
+                        for (property in dontEnums) {
+                            if (isProperty.call(dontEnums, property)) {
                                 size++;
                             }
                         }
-                        Properties = members = null;
+                        Properties = dontEnums = null;
                         if (!size) {
-                            members = [ "valueOf", "toString", "toLocaleString", "propertyIsEnumerable", "isPrototypeOf", "hasOwnProperty", "constructor" ];
-                            forEach = function(object, callback) {
+                            dontEnums = [ "valueOf", "toString", "toLocaleString", "propertyIsEnumerable", "isPrototypeOf", "hasOwnProperty", "constructor" ];
+                            forOwn = function(object, callback) {
                                 var isFunction = getClass.call(object) == functionClass, property, length;
                                 var hasProperty = !isFunction && typeof object.constructor != "function" && objectTypes[typeof object.hasOwnProperty] && object.hasOwnProperty || isProperty;
                                 for (property in object) {
@@ -1709,19 +1705,14 @@
                                         callback(property);
                                     }
                                 }
-                                for (length = members.length; property = members[--length]; hasProperty.call(object, property) && callback(property)) ;
-                            };
-                        } else if (size == 2) {
-                            forEach = function(object, callback) {
-                                var members = {}, isFunction = getClass.call(object) == functionClass, property;
-                                for (property in object) {
-                                    if (!(isFunction && property == "prototype") && !isProperty.call(members, property) && (members[property] = 1) && isProperty.call(object, property)) {
+                                for (length = dontEnums.length; property = dontEnums[--length]; ) {
+                                    if (hasProperty.call(object, property)) {
                                         callback(property);
                                     }
                                 }
                             };
                         } else {
-                            forEach = function(object, callback) {
+                            forOwn = function(object, callback) {
                                 var isFunction = getClass.call(object) == functionClass, property, isConstructor;
                                 for (property in object) {
                                     if (!(isFunction && property == "prototype") && isProperty.call(object, property) && !(isConstructor = property === "constructor")) {
@@ -1733,9 +1724,9 @@
                                 }
                             };
                         }
-                        return forEach(object, callback);
+                        return forOwn(object, callback);
                     };
-                    if (!has("json-stringify")) {
+                    if (!has("json-stringify") && !has("date-serialization")) {
                         var Escapes = {
                             "92": "\\\\",
                             "34": '\\"',
@@ -1749,134 +1740,173 @@
                         var toPaddedString = function(width, value) {
                             return (leadingZeroes + (value || 0)).slice(-width);
                         };
-                        var unicodePrefix = "\\u00";
-                        var quote = function(value) {
-                            var result = '"', index = 0, length = value.length, useCharIndex = !charIndexBuggy || length > 10;
-                            var symbols = useCharIndex && (charIndexBuggy ? value.split("") : value);
-                            for (;index < length; index++) {
-                                var charCode = value.charCodeAt(index);
-                                switch (charCode) {
-                                  case 8:
-                                  case 9:
-                                  case 10:
-                                  case 12:
-                                  case 13:
-                                  case 34:
-                                  case 92:
-                                    result += Escapes[charCode];
-                                    break;
-
-                                  default:
-                                    if (charCode < 32) {
-                                        result += unicodePrefix + toPaddedString(2, charCode.toString(16));
-                                        break;
-                                    }
-                                    result += useCharIndex ? symbols[index] : value.charAt(index);
-                                }
+                        var serializeDate = function(value) {
+                            var getData, year, month, date, time, hours, minutes, seconds, milliseconds;
+                            if (!isExtended) {
+                                var floor = Math.floor;
+                                var Months = [ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 ];
+                                var getDay = function(year, month) {
+                                    return Months[month] + 365 * (year - 1970) + floor((year - 1969 + (month = +(month > 1))) / 4) - floor((year - 1901 + month) / 100) + floor((year - 1601 + month) / 400);
+                                };
+                                getData = function(value) {
+                                    date = floor(value / 864e5);
+                                    for (year = floor(date / 365.2425) + 1970 - 1; getDay(year + 1, 0) <= date; year++) ;
+                                    for (month = floor((date - getDay(year, 0)) / 30.42); getDay(year, month + 1) <= date; month++) ;
+                                    date = 1 + date - getDay(year, month);
+                                    time = (value % 864e5 + 864e5) % 864e5;
+                                    hours = floor(time / 36e5) % 24;
+                                    minutes = floor(time / 6e4) % 60;
+                                    seconds = floor(time / 1e3) % 60;
+                                    milliseconds = time % 1e3;
+                                };
+                            } else {
+                                getData = function(value) {
+                                    year = value.getUTCFullYear();
+                                    month = value.getUTCMonth();
+                                    date = value.getUTCDate();
+                                    hours = value.getUTCHours();
+                                    minutes = value.getUTCMinutes();
+                                    seconds = value.getUTCSeconds();
+                                    milliseconds = value.getUTCMilliseconds();
+                                };
                             }
-                            return result + '"';
-                        };
-                        var serialize = function(property, object, callback, properties, whitespace, indentation, stack) {
-                            var value, className, year, month, date, time, hours, minutes, seconds, milliseconds, results, element, index, length, prefix, result;
-                            try {
-                                value = object[property];
-                            } catch (exception) {}
-                            if (typeof value == "object" && value) {
-                                className = getClass.call(value);
-                                if (className == dateClass && !isProperty.call(value, "toJSON")) {
-                                    if (value > -1 / 0 && value < 1 / 0) {
-                                        if (getDay) {
-                                            date = floor(value / 864e5);
-                                            for (year = floor(date / 365.2425) + 1970 - 1; getDay(year + 1, 0) <= date; year++) ;
-                                            for (month = floor((date - getDay(year, 0)) / 30.42); getDay(year, month + 1) <= date; month++) ;
-                                            date = 1 + date - getDay(year, month);
-                                            time = (value % 864e5 + 864e5) % 864e5;
-                                            hours = floor(time / 36e5) % 24;
-                                            minutes = floor(time / 6e4) % 60;
-                                            seconds = floor(time / 1e3) % 60;
-                                            milliseconds = time % 1e3;
-                                        } else {
-                                            year = value.getUTCFullYear();
-                                            month = value.getUTCMonth();
-                                            date = value.getUTCDate();
-                                            hours = value.getUTCHours();
-                                            minutes = value.getUTCMinutes();
-                                            seconds = value.getUTCSeconds();
-                                            milliseconds = value.getUTCMilliseconds();
-                                        }
-                                        value = (year <= 0 || year >= 1e4 ? (year < 0 ? "-" : "+") + toPaddedString(6, year < 0 ? -year : year) : toPaddedString(4, year)) + "-" + toPaddedString(2, month + 1) + "-" + toPaddedString(2, date) + "T" + toPaddedString(2, hours) + ":" + toPaddedString(2, minutes) + ":" + toPaddedString(2, seconds) + "." + toPaddedString(3, milliseconds) + "Z";
-                                    } else {
-                                        value = null;
-                                    }
-                                } else if (typeof value.toJSON == "function" && (className != numberClass && className != stringClass && className != arrayClass || isProperty.call(value, "toJSON"))) {
-                                    value = value.toJSON(property);
-                                }
-                            }
-                            if (callback) {
-                                value = callback.call(object, property, value);
-                            }
-                            if (value === null) {
-                                return "null";
-                            }
-                            className = getClass.call(value);
-                            if (className == booleanClass) {
-                                return "" + value;
-                            } else if (className == numberClass) {
-                                return value > -1 / 0 && value < 1 / 0 ? "" + value : "null";
-                            } else if (className == stringClass) {
-                                return quote("" + value);
-                            }
-                            if (typeof value == "object") {
-                                for (length = stack.length; length--; ) {
-                                    if (stack[length] === value) {
-                                        throw TypeError();
-                                    }
-                                }
-                                stack.push(value);
-                                results = [];
-                                prefix = indentation;
-                                indentation += whitespace;
-                                if (className == arrayClass) {
-                                    for (index = 0, length = value.length; index < length; index++) {
-                                        element = serialize(index, value, callback, properties, whitespace, indentation, stack);
-                                        results.push(element === undef ? "null" : element);
-                                    }
-                                    result = results.length ? whitespace ? "[\n" + indentation + results.join(",\n" + indentation) + "\n" + prefix + "]" : "[" + results.join(",") + "]" : "[]";
+                            serializeDate = function(value) {
+                                if (value > -1 / 0 && value < 1 / 0) {
+                                    getData(value);
+                                    value = (year <= 0 || year >= 1e4 ? (year < 0 ? "-" : "+") + toPaddedString(6, year < 0 ? -year : year) : toPaddedString(4, year)) + "-" + toPaddedString(2, month + 1) + "-" + toPaddedString(2, date) + "T" + toPaddedString(2, hours) + ":" + toPaddedString(2, minutes) + ":" + toPaddedString(2, seconds) + "." + toPaddedString(3, milliseconds) + "Z";
+                                    year = month = date = hours = minutes = seconds = milliseconds = null;
                                 } else {
-                                    forEach(properties || value, function(property) {
-                                        var element = serialize(property, value, callback, properties, whitespace, indentation, stack);
-                                        if (element !== undef) {
-                                            results.push(quote(property) + ":" + (whitespace ? " " : "") + element);
-                                        }
-                                    });
-                                    result = results.length ? whitespace ? "{\n" + indentation + results.join(",\n" + indentation) + "\n" + prefix + "}" : "{" + results.join(",") + "}" : "{}";
+                                    value = null;
                                 }
-                                stack.pop();
+                                return value;
+                            };
+                            return serializeDate(value);
+                        };
+                        if (has("json-stringify") && !has("date-serialization")) {
+                            function dateToJSON(key) {
+                                return serializeDate(this);
+                            }
+                            var nativeStringify = exports.stringify;
+                            exports.stringify = function(source, filter, width) {
+                                var nativeToJSON = Date.prototype.toJSON;
+                                Date.prototype.toJSON = dateToJSON;
+                                var result = nativeStringify(source, filter, width);
+                                Date.prototype.toJSON = nativeToJSON;
                                 return result;
-                            }
-                        };
-                        exports.stringify = function(source, filter, width) {
-                            var whitespace, callback, properties, className;
-                            if (objectTypes[typeof filter] && filter) {
-                                if ((className = getClass.call(filter)) == functionClass) {
-                                    callback = filter;
-                                } else if (className == arrayClass) {
-                                    properties = {};
-                                    for (var index = 0, length = filter.length, value; index < length; value = filter[index++], 
-                                    (className = getClass.call(value), className == stringClass || className == numberClass) && (properties[value] = 1)) ;
+                            };
+                        } else {
+                            var unicodePrefix = "\\u00";
+                            var escapeChar = function(character) {
+                                var charCode = character.charCodeAt(0), escaped = Escapes[charCode];
+                                if (escaped) {
+                                    return escaped;
                                 }
-                            }
-                            if (width) {
-                                if ((className = getClass.call(width)) == numberClass) {
-                                    if ((width -= width % 1) > 0) {
-                                        for (whitespace = "", width > 10 && (width = 10); whitespace.length < width; whitespace += " ") ;
+                                return unicodePrefix + toPaddedString(2, charCode.toString(16));
+                            };
+                            var reEscape = /[\x00-\x1f\x22\x5c]/g;
+                            var quote = function(value) {
+                                reEscape.lastIndex = 0;
+                                return '"' + (reEscape.test(value) ? value.replace(reEscape, escapeChar) : value) + '"';
+                            };
+                            var serialize = function(property, object, callback, properties, whitespace, indentation, stack) {
+                                var value, type, className, results, element, index, length, prefix, result;
+                                attempt(function() {
+                                    value = object[property];
+                                });
+                                if (typeof value == "object" && value) {
+                                    if (value.getUTCFullYear && getClass.call(value) == dateClass && value.toJSON === Date.prototype.toJSON) {
+                                        value = serializeDate(value);
+                                    } else if (typeof value.toJSON == "function") {
+                                        value = value.toJSON(property);
                                     }
-                                } else if (className == stringClass) {
-                                    whitespace = width.length <= 10 ? width : width.slice(0, 10);
                                 }
-                            }
-                            return serialize("", (value = {}, value[""] = source, value), callback, properties, whitespace, "", []);
-                        };
+                                if (callback) {
+                                    value = callback.call(object, property, value);
+                                }
+                                if (value == undefined) {
+                                    return value === undefined ? value : "null";
+                                }
+                                type = typeof value;
+                                if (type == "object") {
+                                    className = getClass.call(value);
+                                }
+                                switch (className || type) {
+                                  case "boolean":
+                                  case booleanClass:
+                                    return "" + value;
+
+                                  case "number":
+                                  case numberClass:
+                                    return value > -1 / 0 && value < 1 / 0 ? "" + value : "null";
+
+                                  case "string":
+                                  case stringClass:
+                                    return quote("" + value);
+                                }
+                                if (typeof value == "object") {
+                                    for (length = stack.length; length--; ) {
+                                        if (stack[length] === value) {
+                                            throw TypeError();
+                                        }
+                                    }
+                                    stack.push(value);
+                                    results = [];
+                                    prefix = indentation;
+                                    indentation += whitespace;
+                                    if (className == arrayClass) {
+                                        for (index = 0, length = value.length; index < length; index++) {
+                                            element = serialize(index, value, callback, properties, whitespace, indentation, stack);
+                                            results.push(element === undefined ? "null" : element);
+                                        }
+                                        result = results.length ? whitespace ? "[\n" + indentation + results.join(",\n" + indentation) + "\n" + prefix + "]" : "[" + results.join(",") + "]" : "[]";
+                                    } else {
+                                        forOwn(properties || value, function(property) {
+                                            var element = serialize(property, value, callback, properties, whitespace, indentation, stack);
+                                            if (element !== undefined) {
+                                                results.push(quote(property) + ":" + (whitespace ? " " : "") + element);
+                                            }
+                                        });
+                                        result = results.length ? whitespace ? "{\n" + indentation + results.join(",\n" + indentation) + "\n" + prefix + "}" : "{" + results.join(",") + "}" : "{}";
+                                    }
+                                    stack.pop();
+                                    return result;
+                                }
+                            };
+                            exports.stringify = function(source, filter, width) {
+                                var whitespace, callback, properties, className;
+                                if (objectTypes[typeof filter] && filter) {
+                                    className = getClass.call(filter);
+                                    if (className == functionClass) {
+                                        callback = filter;
+                                    } else if (className == arrayClass) {
+                                        properties = {};
+                                        for (var index = 0, length = filter.length, value; index < length; ) {
+                                            value = filter[index++];
+                                            className = getClass.call(value);
+                                            if (className == "[object String]" || className == "[object Number]") {
+                                                properties[value] = 1;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (width) {
+                                    className = getClass.call(width);
+                                    if (className == numberClass) {
+                                        if ((width -= width % 1) > 0) {
+                                            if (width > 10) {
+                                                width = 10;
+                                            }
+                                            for (whitespace = ""; whitespace.length < width; ) {
+                                                whitespace += " ";
+                                            }
+                                        }
+                                    } else if (className == stringClass) {
+                                        whitespace = width.length <= 10 ? width : width.slice(0, 10);
+                                    }
+                                }
+                                return serialize("", (value = {}, value[""] = source, value), callback, properties, whitespace, "", []);
+                            };
+                        }
                     }
                     if (!has("json-parse")) {
                         var fromCharCode = String.fromCharCode;
@@ -1983,7 +2013,12 @@
                                         for (;Index < length && (charCode = source.charCodeAt(Index), charCode >= 48 && charCode <= 57); Index++) ;
                                         if (source.charCodeAt(Index) == 46) {
                                             position = ++Index;
-                                            for (;position < length && (charCode = source.charCodeAt(position), charCode >= 48 && charCode <= 57); position++) ;
+                                            for (;position < length; position++) {
+                                                charCode = source.charCodeAt(position);
+                                                if (charCode < 48 || charCode > 57) {
+                                                    break;
+                                                }
+                                            }
                                             if (position == Index) {
                                                 abort();
                                             }
@@ -1995,8 +2030,12 @@
                                             if (charCode == 43 || charCode == 45) {
                                                 Index++;
                                             }
-                                            for (position = Index; position < length && (charCode = source.charCodeAt(position), 
-                                            charCode >= 48 && charCode <= 57); position++) ;
+                                            for (position = Index; position < length; position++) {
+                                                charCode = source.charCodeAt(position);
+                                                if (charCode < 48 || charCode > 57) {
+                                                    break;
+                                                }
+                                            }
                                             if (position == Index) {
                                                 abort();
                                             }
@@ -2007,13 +2046,14 @@
                                     if (isSigned) {
                                         abort();
                                     }
-                                    if (source.slice(Index, Index + 4) == "true") {
+                                    var temp = source.slice(Index, Index + 4);
+                                    if (temp == "true") {
                                         Index += 4;
                                         return true;
-                                    } else if (source.slice(Index, Index + 5) == "false") {
+                                    } else if (temp == "fals" && source.charCodeAt(Index + 4) == 101) {
                                         Index += 5;
                                         return false;
-                                    } else if (source.slice(Index, Index + 4) == "null") {
+                                    } else if (temp == "null") {
                                         Index += 4;
                                         return null;
                                     }
@@ -2033,7 +2073,7 @@
                                 }
                                 if (value == "[") {
                                     results = [];
-                                    for (;;hasMembers || (hasMembers = true)) {
+                                    for (;;) {
                                         value = lex();
                                         if (value == "]") {
                                             break;
@@ -2047,6 +2087,8 @@
                                             } else {
                                                 abort();
                                             }
+                                        } else {
+                                            hasMembers = true;
                                         }
                                         if (value == ",") {
                                             abort();
@@ -2056,7 +2098,7 @@
                                     return results;
                                 } else if (value == "{") {
                                     results = {};
-                                    for (;;hasMembers || (hasMembers = true)) {
+                                    for (;;) {
                                         value = lex();
                                         if (value == "}") {
                                             break;
@@ -2070,6 +2112,8 @@
                                             } else {
                                                 abort();
                                             }
+                                        } else {
+                                            hasMembers = true;
                                         }
                                         if (value == "," || typeof value != "string" || (charIndexBuggy ? value.charAt(0) : value[0]) != "@" || lex() != ":") {
                                             abort();
@@ -2084,7 +2128,7 @@
                         };
                         var update = function(source, property, callback) {
                             var element = walk(source, property, callback);
-                            if (element === undef) {
+                            if (element === undefined) {
                                 delete source[property];
                             } else {
                                 source[property] = element;
@@ -2095,10 +2139,10 @@
                             if (typeof value == "object" && value) {
                                 if (getClass.call(value) == arrayClass) {
                                     for (length = value.length; length--; ) {
-                                        update(value, length, callback);
+                                        update(getClass, forOwn, value, length, callback);
                                     }
                                 } else {
-                                    forEach(value, function(property) {
+                                    forOwn(value, function(property) {
                                         update(value, property, callback);
                                     });
                                 }
@@ -2119,19 +2163,19 @@
                         };
                     }
                 }
-                exports["runInContext"] = runInContext;
+                exports.runInContext = runInContext;
                 return exports;
             }
             if (freeExports && !isLoader) {
                 runInContext(root, freeExports);
             } else {
-                var nativeJSON = root.JSON, previousJSON = root["JSON3"], isRestored = false;
-                var JSON3 = runInContext(root, root["JSON3"] = {
+                var nativeJSON = root.JSON, previousJSON = root.JSON3, isRestored = false;
+                var JSON3 = runInContext(root, root.JSON3 = {
                     "noConflict": function() {
                         if (!isRestored) {
                             isRestored = true;
                             root.JSON = nativeJSON;
-                            root["JSON3"] = previousJSON;
+                            root.JSON3 = previousJSON;
                             nativeJSON = previousJSON = null;
                         }
                         return JSON3;

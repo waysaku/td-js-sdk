@@ -1,7 +1,8 @@
 dist: trusty
 sudo: false
-cache:
-  yarn: true
+script:
+  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then yarn build; fi'
+  - 'if [ "$TRAVIS_PULL_REQUEST"  = "false" ]; then yarn test;  fi'
 language: node_js
 env:
   global:

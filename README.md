@@ -30,7 +30,7 @@
 - [API](#api)
   - [Treasure(config)](#treasureconfig)
   - [Treasure#addRecord(table, record, success, error)](#treasureaddrecordtable-record-success-error)
-  - [Treasure#fetchGlobalID(success, error, forceFetch)](#treasurefetchglobalidsuccess-error-forcefetch)
+  - [Treasure#fetchGlobalID(success, error, forceFetch, options)](#treasurefetchglobalidsuccess-error-forcefetch-options)
   - [Treasure#fetchUserSegments(token, success, error)](#treasurefetchusersegmentstoken-success-error)
   - [Treasure#fetchUserSegments(options, success, error)](#treasurefetchusersegmentsoptions-success-error)
   - [Treasure#blockEvents](#treasureblockevents)
@@ -94,7 +94,7 @@ Install td-js-sdk on your page by copying the appropriate JavaScript snippet bel
 
 ```html
 <script type="text/javascript">
-!function(t,e){if(void 0===e[t]){e[t]=function(){e[t].clients.push(this),this._init=[Array.prototype.slice.call(arguments)]},e[t].clients=[];for(var r=function(t){return function(){return this["_"+t]=this["_"+t]||[],this["_"+t].push(Array.prototype.slice.call(arguments)),this}},s=["blockEvents","fetchServerCookie","unblockEvents","setSignedMode","setAnonymousMode","resetUUID","addRecord","fetchGlobalID","set","trackEvent","trackPageview","trackClicks","ready"],n=0;n<s.length;n++){var o=s[n];e[t].prototype[o]=r(o)}var c=document.createElement("script");c.type="text/javascript",c.async=!0,c.src=("https:"===document.location.protocol?"https:":"http:")+"//cdn.treasuredata.com/sdk/2.3/td.min.js";var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(c,a)}}("Treasure",this);
+!function(t,e){if(void 0===e[t]){e[t]=function(){e[t].clients.push(this),this._init=[Array.prototype.slice.call(arguments)]},e[t].clients=[];for(var r=["blockEvents","fetchServerCookie","unblockEvents","setSignedMode","setAnonymousMode","resetUUID","addRecord","fetchGlobalID","set","trackEvent","trackPageview","trackClicks","ready"],s=0;s<r.length;s++){var o=r[s];e[t].prototype[o]=function(t){return function(){return this["_"+t]=this["_"+t]||[],this["_"+t].push(Array.prototype.slice.call(arguments)),this}}(o)}var c=document.createElement("script");c.type="text/javascript",c.async=!0,c.src=("https:"===document.location.protocol?"https:":"http:")+"//cdn.treasuredata.com/sdk/2.3/td.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(c,n)}}("Treasure",this);
 </script>
 ```
 
